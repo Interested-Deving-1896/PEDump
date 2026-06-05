@@ -66,37 +66,36 @@ RET_CODE parse_dos_header(FILE *peFile, PIMAGE_DOS_HEADER dosHeader) {
 }
 
 RET_CODE parse_rich_header(FILE *peFile, DWORD StartOff, DWORD endOff, PIMAGE_RICH_HEADER *richHeader) {
-    if (!peFile || !StartOff || !endOff)
+    if (!peFile || endOff <= StartOff) {
         return RET_INVALID_PARAM;
-
-    PDWORD raw = NULL;
-    PBYTE rawBytes = NULL;
+    }
 
     DWORD bufferSize  = endOff - StartOff;
     DWORD bufferCount = bufferSize / sizeof(DWORD);
 
-    int richIdx = -1;
-    DWORD xorKey = 0;
-
-    if (FSEEK64(peFile, StartOff, SEEK_SET) != 0)
+    PDWORD raw = NULL;
+    PBYTE rawBytes = (PBYTE)malloc(bufferSize);
+    if (!rawBytes) {
         return RET_ERROR;
+    }
 
-    rawBytes = (PBYTE)malloc(bufferSize);
-    if (!rawBytes)
-        return RET_ERROR;
-
-    if (fread(rawBytes, 1, bufferSize, peFile) != bufferSize) {
+    if (FSEEK64(peFile, StartOff, SEEK_SET) != 0 ||
+    fread(rawBytes, 1, bufferSize, peFile) != bufferSize) {
         SAFE_FREE(rawBytes);
         return RET_ERROR;
     }
 
     raw = (PDWORD)rawBytes;
 
-    // Find Rich marker and XOR key
-    for (DWORD i = 0; i < bufferCount; i++) {
+    // 1. Find RICH + XOR key
+    int richIdx = -1;
+    DWORD xorKey = 0;
+
+    for (DWORD i = 0; i < bufferCount - 1; i++) {
         if (raw[i] == tagBegId) {
             richIdx = (int)i;
             xorKey  = raw[i + 1];
+
             break;
         }
     }
@@ -106,37 +105,13 @@ RET_CODE parse_rich_header(FILE *peFile, DWORD StartOff, DWORD endOff, PIMAGE_RI
         return RET_NO_VALUE;
     }
 
-    // Find entry start (first DWORD after last XOR-key-like padding)
-    int entryStart = 0;
-
-    for (int i = richIdx; i >= 0; i--) {
-        if (raw[i] == xorKey)
-        {
-            entryStart = i + 1;
-            break;
-        }
-    }
-
-    if (entryStart <= 0 || entryStart >= richIdx) {
-        SAFE_FREE(rawBytes);
-        return RET_NO_VALUE;
-    }
-
-    int entryDWORDs = richIdx - entryStart;
-
-    if (entryDWORDs <= 0 || (entryDWORDs % 2) != 0) {
-        SAFE_FREE(rawBytes);
-        return RET_ERROR;
-    }
-
-    WORD numberOfEntries = (WORD)(entryDWORDs / 2);
-
-    // Find DanS (must be decrypted match)
+    // 2. Find DanS
     int danSIdx = -1;
 
     for (int i = richIdx; i >= 0; i--) {
         if ((raw[i] ^ xorKey) == tagEndId) {
             danSIdx = i;
+
             break;
         }
     }
@@ -146,29 +121,48 @@ RET_CODE parse_rich_header(FILE *peFile, DWORD StartOff, DWORD endOff, PIMAGE_RI
         return RET_NO_VALUE;
     }
 
-    // Allocate structure
+    // 3. Entry region
+    //    entries are always between:
+    //    - (DanS + padding) ----> (rich marker)
+
+    int entryStart = danSIdx + 4; // skip DanS + 3 padding DWORDS
+
+    if (entryStart >= richIdx) {
+        SAFE_FREE(rawBytes);
+        return RET_NO_VALUE;
+    }
+
+    int entryDWORDs = richIdx - entryStart;
+
+    // allow odd cases by trimming last padding safely
+    if (entryDWORDs % 2 != 0) {
+        entryDWORDs--;
+    }
+
+    WORD numberOfEntries = (WORD)(entryDWORDs / 2);
+
+    // 4. Allocate struct
     *richHeader = (PIMAGE_RICH_HEADER)calloc(1, sizeof(IMAGE_RICH_HEADER));
     if (!*richHeader) {
         SAFE_FREE(rawBytes);
         return RET_ERROR;
     }
 
-    (*richHeader)->Entries = (RICH_ENTRY*)calloc(numberOfEntries, sizeof(RICH_ENTRY));
+    (*richHeader)->Entries =
+        (RICH_ENTRY*)calloc(numberOfEntries, sizeof(RICH_ENTRY));
+
     if (!(*richHeader)->Entries) {
         SAFE_FREE(*richHeader);
         SAFE_FREE(rawBytes);
         return RET_ERROR;
     }
 
-    // Fill header (consistent XOR domain)
     (*richHeader)->XORKey = xorKey;
-
-    (*richHeader)->DanS = raw[danSIdx] ^ xorKey;
-    (*richHeader)->Rich = raw[richIdx];
-
+    (*richHeader)->Rich   = raw[richIdx];
+    (*richHeader)->DanS   = raw[danSIdx] ^ xorKey;
     (*richHeader)->NumberOfEntries = numberOfEntries;
 
-    // Decode entries (2 DWORD per entry)
+    // 5. Decode entries
     PDWORD stream = &raw[entryStart];
 
     for (WORD i = 0; i < numberOfEntries; i++) {
@@ -180,11 +174,11 @@ RET_CODE parse_rich_header(FILE *peFile, DWORD StartOff, DWORD endOff, PIMAGE_RI
         (*richHeader)->Entries[i].Count   = cnt;
     }
 
-    // Offsets + size
-    (*richHeader)->richHdrOff = StartOff + (danSIdx * sizeof(DWORD));
+    // 6. Offsets + size
+    (*richHeader)->richHdrOff = StartOff + (danSIdx * 4);
 
     (*richHeader)->richHdrSize =
-        ((richIdx - danSIdx) + 2 + entryDWORDs) * sizeof(DWORD);
+        ((richIdx - danSIdx) + 2) * sizeof(DWORD);
 
     SAFE_FREE(rawBytes);
     return RET_SUCCESS;

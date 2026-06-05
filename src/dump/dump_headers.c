@@ -130,7 +130,7 @@ RET_CODE dump_rich_header(FILE *peFile, PIMAGE_RICH_HEADER richHeader) {
 
     DWORD foBase = richHeader->richHdrOff;
 
-    printf("\n%08lX\t\t\t\t\t\t\t- RICH HEADER -\n\n", foBase);
+    printf("\n%08lX\t\t\t- RICH HEADER -\n\n", foBase);
 
     // DanS marker (already decoded in parse stage)
     printf("%08lX  [4]  DanS marker      : %08lX  (\"%c%c%c%c\")\n\n",
