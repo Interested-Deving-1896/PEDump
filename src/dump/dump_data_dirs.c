@@ -2742,11 +2742,12 @@ RET_CODE dump_tls_dir(
 
         int i = 0;
         int hasCallbacks = 0;
+        const ULONGLONG ptrSize = is64bit ? sizeof(ULONGLONG) : sizeof(DWORD);
 
         while (1) {
-            DWORD callBackEntry;
+            ULONGLONG callBackEntry;
 
-            if (fread(&callBackEntry, sizeof(DWORD), 1, peFile) != 1)
+            if (fread(&callBackEntry, sizeof(ptrSize), 1, peFile) != 1)
                 break;
 
             if (callBackEntry == 0)
@@ -2760,11 +2761,11 @@ RET_CODE dump_tls_dir(
                     "Idx", "AddrOfCallBacks", "OffOfCallBacks", "CallBackEntries");
             }
 
-            printf("%-5d  %016llX  %08lX          %08lX\n",
-                i + 1, addressOfCallBacks, offOfCallBacks, callBackEntry);
+            printf("%-5d  %016llX  %08lX          %0*llX\n",
+                i + 1, addressOfCallBacks, offOfCallBacks, is64bit ? 16 : 8, callBackEntry);
 
-            addressOfCallBacks += 4;
-            offOfCallBacks += 4;
+            addressOfCallBacks += ptrSize;
+            offOfCallBacks += ptrSize;
             i++;
         }
 
