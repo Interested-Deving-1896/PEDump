@@ -1,49 +1,29 @@
+[update-readmes]   Mode: rewrite — migrating to template structure...
 # PEDump
 
-A cross-platform **Portable Executable (PE)** inspection and analysis tool written in C.  
-`PEDump` performs static analysis of Windows PE files on Linux, Windows, with macOS support planned.
+[![Built with Ona](https://ona.com/build-with-ona.svg)](https://app.ona.com/#https://github.com/Interested-Deving-1896/PEDump)
 
----
+<!-- AI:start:what-it-does -->
+_Description pending._
+<!-- AI:end:what-it-does -->
 
-## Features
+## Architecture
 
-- **Comprehensive PE Analysis** – Full parsing of headers, sections, and directories; **CLR inspection limited to header only**
-- **Cross-Platform Support** – Works on Windows, Linux; macOS support is planned
-- **Robust Parsing** – Handles malformed or non-standard PE files
-- **Stream Output** – Incremental or piped output for live analysis
-- **Targeted Extraction** – Extract specific sections, imports, exports, or arbitrary ranges
-- **Strings Extraction** – Extract ASCII and UTF-16LE strings from PE files
-- **COFF Symbol & String Tables** – Access PE symbol and string tables not commonly exposed
-- **Hashing** – Compute MD5, SHA1, and SHA2 hashes of files, sections, or ranges
-- **Comparison** – Compare PE regions within the same file or between two files
-- **Output Formatting** – Flexible formats: hex, dec, bin, table
+<!-- AI:start:architecture -->
+_Architecture documentation pending._
+<!-- AI:end:architecture -->
 
----
+## Install
 
-## Build Requirements
+<!-- Add installation instructions here. This section is yours — the AI will not modify it. -->
 
-- C11-compatible compiler (GCC, Clang, or MSVC)  
-- CMake ≥ 3.20  
-- Windows or POSIX environment
-
----
-
-## Building
-
-```powershell
-mkdir build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+```bash
+git clone https://github.com/Interested-Deving-1896/PEDump.git
+cd PEDump
 ```
 
-The binary will be located in **build/bin/**:
-
-- **Windows**: `PEDump.exe`  
-- **Linux**: `PEDump`
-
----
-
 ## Usage
+
 
 ```bash
 PEDump [options] file [file2]
@@ -51,133 +31,50 @@ PEDump [options] file [file2]
 
 ---
 
-## General
+## Configuration
 
-| Command | Description |
-|--------|-------------|
-| `-h`, `--help` | Show help message |
+<!-- Document configuration options here. This section is yours — the AI will not modify it. -->
 
----
+## CI
 
-## Headers & PE Information
+<!-- AI:start:ci -->
+_CI documentation pending._
+<!-- AI:end:ci -->
 
-| Command | Description |
-|--------|-------------|
-| `-dh`, `--dos-header` | Print DOS header |
-| `-fh`, `--file-header` | Print File header |
-| `-oh`, `--optional-header` | Print Optional header |
-| `-nth`, `--nt-headers` | Print NT headers |
-| `-sh`, `--section-headers` | Print section headers |
+## Mirror chain
 
----
+<!-- AI:start:mirror-chain -->
+This repo is maintained in [`Interested-Deving-1896/PEDump`](https://github.com/Interested-Deving-1896/PEDump) and mirrored through:
 
-## Data Directories
-
-| Command | Description |
-|--------|-------------|
-| `-e`, `--exports` | Print export directory |
-| `-i`, `--imports` | Print import directory |
-| `-r`, `--resources` | Print resources directory |
-| `-ex`, `--exception` | Print exception directory |
-| `-sec`, `--security` | Print security directory |
-| `-br`, `--basereloc` | Print base relocations |
-| `-d`, `--debug` | Print debug directory |
-| `-tls`, `--tls` | Print TLS directory |
-| `-lc`, `--load-config` | Print load config directory |
-| `-bi`, `--bound-import` | Print bound imports |
-| `-iat`, `--iat` | Print Import Address Table |
-| `-di`, `--delay-import` | Print delay imports |
-| `-ch`, `--clr-header` | Print CLR header |
-| `-dd`, `--data-directories` | Print all data directories |
-
----
-
-## Miscellaneous
-
-| Command | Description |
-|--------|-------------|
-| `-rh`, `--rich-header` | Print Rich header |
-| `-vi`, `--version-info` | Print version information |
-| `-sym`, `--symbol-table` | Print COFF symbol table |
-| `-st`, `--string-table` | Print COFF string table |
-| `-o`, `--overlay` | Print overlay data |
-| `-ov`, `--overview` | Print high-level file overview |
-| `-a`, `--all` | Print all available information |
-
----
-
-## Output Formatting
-
-| Command | Description |
-|--------|-------------|
-| `-v2f`, `--va2file <NUMBER>` | Convert virtual address to file offset |
-| `-f`, `--format <type[:spec]>` | Output format and optional range |
-| `-tf`, `--temp-format <type[:spec]>` | Temporary format override |
-
----
-
-## Strings
-
-| Command | Description |
-|--------|-------------|
-| `-str`, `--strings [rgex:<pattern>]` | Dump ASCII & UTF-16LE strings (minimum length: 5) |
-
----
-
-## Extraction
-
-| Command | Description |
-|--------|-------------|
-| `-x`, `--extract <target[:spec]>` | Extract sections, imports, exports, or regions |
-
-**Targets**
-- `section:NAME | #IDX | rva/VAL | fo/VAL`
-- `export:NAME | #ORD | rva/VAL | FWD | LIB`
-- `import:NAME | #ORD | @HNT | LIB | LIB/NAME`
-
-**Address formats:** `HEX`, `0xHEX`, `HEXh`
-
----
-
-## Hashing
-
-| Command | Description |
-|--------|-------------|
-| `-H`, `--hash <target[@alg]>` | Hash file or region (MD5 / SHA family) |
-
-Supported algorithms:
-`md5`, `sha1`, `sha224`, `sha256`, `sha384`, `sha512`, `sha512_224`, `sha512_256`
-
----
-
-## Comparison
-
-| Command | Description |
-|--------|-------------|
-| `-cc`, `--compare-targets <target1>::<target2[@alg]>` | Compare regions between two targets |
-
----
-
-## Example Usage
-
-```bash
-PEDump -ov test.exe
-PEDump -i test.exe
-PEDump -H section:.text@sha256 test.exe
+```
+Interested-Deving-1896/PEDump  ──►  OpenOS-Project-OSP/PEDump  ──►  OpenOS-Project-Ecosystem-OOC/PEDump
 ```
 
-> **Note:** For detailed usage examples, advanced options, and command demonstrations, see [USAGE.md](USAGE.md).
+Changes flow downstream automatically via the hourly mirror chain in
+[`fork-sync-all`](https://github.com/Interested-Deving-1896/fork-sync-all).
+Direct commits to OSP or OOC are detected and opened as PRs back to `Interested-Deving-1896`.
+<!-- AI:end:mirror-chain -->
 
----
+## Contributors
 
-## Notes & Status
+<!-- AI:start:contributors -->
+_Contributors pending._
+<!-- AI:end:contributors -->
 
-- All commands are implemented and fully tested on Windows.  
-- Linux support is available but not yet fully verified; macOS support is planned and partially implemented.
-- Developed as my first C project; while fully functional, it reflects a learning process and may not be perfectly polished.
+## Origins
 
----
+<!-- AI:start:origins -->
+_Original project — no upstream fork._
+<!-- AI:end:origins -->
+
+## Resources
+
+<!-- AI:start:resources -->
+_No additional resource files found._
+<!-- AI:end:resources -->
 
 ## License
 
-Released under the **MIT License**. See [LICENSE](LICENSE) for full text.
+<!-- AI:start:license -->
+[MIT](https://github.com/Interested-Deving-1896/PEDump/blob/main/LICENSE) © 2026 [Interested-Deving-1896](https://github.com/Interested-Deving-1896)
+<!-- AI:end:license -->
